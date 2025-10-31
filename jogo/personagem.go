@@ -49,6 +49,8 @@ func personagemMover(jogo *Jogo, tecla rune, direcao chan (string), estrela_obti
 
 // Lógica para o personagem atirar em uma direção
 func personagemAtirar(jogo *Jogo, direcao chan (string), lock chan struct{}) {
+	// Notifica servidor: jogador começou a atirar
+	rpcEmitAction("shoot", 0)
 	<-lock
 	jogo.StatusMsg = fmt.Sprintf("Atirando em (%d, %d)", jogo.PosX, jogo.PosY)
 	x, y := jogo.PosX, jogo.PosY
@@ -93,6 +95,8 @@ func personagemAtirar(jogo *Jogo, direcao chan (string), lock chan struct{}) {
 			}
 			interfaceDesenharJogo(jogo)
 			lock <- struct{}{}
+			// Notifica servidor: tiro acertou inimigo
+			rpcEmitAction("hit", 0)
 			break
 		} else if jogo.Mapa[y][x] == Vazio { // Move o tiro se o próximo espaço estiver vazio
 			<-lock

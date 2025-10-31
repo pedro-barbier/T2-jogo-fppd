@@ -24,6 +24,8 @@ func vidaAdm(jogo *Jogo, heal_confirmation chan bool, damage_confirmation chan b
 					interfaceDesenharJogo(jogo)
 					lock <- struct{}{}
 				}
+				// Notifica servidor: curou (atualiza vidas)
+				rpcEmitAction("heal", vida)
 			}
 
 		case dano := <-damage_confirmation:
@@ -49,9 +51,13 @@ func vidaAdm(jogo *Jogo, heal_confirmation chan bool, damage_confirmation chan b
 					jogo.StatusMsg = "Você morreu! Fim de jogo."
 					interfaceDesenharJogo(jogo)
 					lock <- struct{}{}
+					// Notifica servidor: dano (vidas foram a 0)
+					rpcEmitAction("damaged", vida)
 					gameOver <- true
 					return
 				}
+				// Notifica servidor: tomou dano (atualiza vidas)
+				rpcEmitAction("damaged", vida)
 			}
 		}
 	}

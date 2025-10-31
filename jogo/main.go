@@ -30,6 +30,8 @@ func main() {
 	lock := make(chan struct{}, 1)
 	lock <- struct{}{}
 
+	startRPCClient(&jogo, lock)
+
 	direcao := make(chan string, 1)
 	direcao <- "Default"
 

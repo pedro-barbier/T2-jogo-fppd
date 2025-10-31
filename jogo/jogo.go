@@ -24,17 +24,17 @@ type Jogo struct {
 
 // Elementos visuais do jogo
 var (
-	Personagem    = Elemento{'☺', CorCinzaEscuro, CorPadrao, true}
-	Inimigo       = Elemento{'☠', CorVermelho, CorPadrao, true}
-	Parede        = Elemento{'▤', CorParede, CorFundoParede, true}
-	Parede2       = Elemento{'░', CorParede, CorPadrao, true}
-	Vegetacao     = Elemento{'♣', CorVerde, CorPadrao, false}
-	Powerup       = Elemento{'★', CorAmarela, CorPadrao, false}
-	Coracao       = Elemento{'♥', CorVermelho, CorPadrao, true}
-	CoracaoFerido = Elemento{'♡', CorCinzaEscuro, CorPadrao, true}
-	Tiro          = Elemento{'✳', CorRoxa, CorPadrao, true}
-	Zero          = Elemento{'0', CorTexto, CorPadrao, true}
-	Vazio         = Elemento{' ', CorPadrao, CorPadrao, false}
+	Personagem     = Elemento{'☺', CorCinzaEscuro, CorPadrao, true}
+	SegundoJogador = Elemento{'☻', CorCinzaEscuro, CorPadrao, true}
+	Inimigo        = Elemento{'☠', CorVermelho, CorPadrao, true}
+	Parede         = Elemento{'▤', CorParede, CorFundoParede, true}
+	Parede2        = Elemento{'░', CorParede, CorPadrao, true}
+	Vegetacao      = Elemento{'♣', CorVerde, CorPadrao, false}
+	Powerup        = Elemento{'★', CorAmarela, CorPadrao, false}
+	Coracao        = Elemento{'♥', CorVermelho, CorPadrao, true}
+	CoracaoFerido  = Elemento{'♡', CorCinzaEscuro, CorPadrao, true}
+	Tiro           = Elemento{'✳', CorRoxa, CorPadrao, true}
+	Vazio          = Elemento{' ', CorPadrao, CorPadrao, false}
 )
 
 // Cria e retorna uma nova instância do jogo
@@ -76,8 +76,8 @@ func jogoCarregarMapa(nome string, jogo *Jogo) error {
 				e = CoracaoFerido
 			case Tiro.simbolo:
 				e = Tiro
-			case Zero.simbolo:
-				e = Zero
+			case SegundoJogador.simbolo:
+				e = SegundoJogador
 			case Personagem.simbolo:
 				jogo.PosX, jogo.PosY = x, y // registra a posição inicial do personagem
 			}
