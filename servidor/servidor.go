@@ -59,12 +59,11 @@ type LeaveArgs struct {
 type LeaveReply struct{}
 
 type UpdateArgs struct {
-	ID    PlayerID
-	X, Y  int
-	Lives int
-	Dir   string
-	// Action é livre ("move", "shoot", "heal", "hit"...). O servidor registra como "player_state".
-	Action string
+	ID     PlayerID
+	X, Y   int
+	Lives  int
+	Dir    string
+	Action string // "move", "shoot", "heal", "hit"...
 }
 type UpdateReply struct {
 	EventID uint64
@@ -115,7 +114,6 @@ func (s *GameServer) Join(args JoinArgs, reply *JoinReply) error {
 	defer s.mu.Unlock()
 
 	id := s.nextPlayerID()
-	// Spawn básico (ajuste conforme desejar)
 	p := &Player{
 		ID:        id,
 		Name:      args.Name,
@@ -144,7 +142,7 @@ func (s *GameServer) Join(args JoinArgs, reply *JoinReply) error {
 		})
 	}
 
-	// Evento de entrada
+	// Evento de entrad
 	ev := Event{
 		Type: "player_join",
 		Player: PlayerSummary{
@@ -244,7 +242,6 @@ func (s *GameServer) Poll(args PollArgs, reply *PollReply) error {
 		reply.Events = nil
 		return nil
 	}
-	// encontra primeiro evento > Since
 	start := 0
 	for i := len(s.events) - 1; i >= 0; i-- {
 		if s.events[i].ID <= args.Since {
@@ -252,7 +249,6 @@ func (s *GameServer) Poll(args PollArgs, reply *PollReply) error {
 			break
 		}
 	}
-	// limita o lote
 	max := start + 256
 	if max > len(s.events) {
 		max = len(s.events)

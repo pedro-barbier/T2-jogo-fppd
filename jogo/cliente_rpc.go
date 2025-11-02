@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Estruturas replicadas do servidor (mantidas compatíveis)
+// Estruturas replicadas do servidr
 type rpcPlayerID string
 
 type rpcPlayerSummary struct {
@@ -54,15 +54,14 @@ type rpcClientState struct {
 	}
 }
 
-// rpcEmitAction é um gancho global para notificar o servidor sobre ações locais.
-// Por padrão é no-op quando não há conexão RPC.
+// rpcEmitAction serve para notificar o servidor sobre ações locais.
 var rpcEmitAction func(action string, lives int)
 
 func init() {
 	rpcEmitAction = func(string, int) {}
 }
 
-// Inicia cliente RPC se SERVER_ADDR estiver definido
+// Inicia cliente RPC
 func startRPCClient(jogo *Jogo, lock chan struct{}) {
 	addr := os.Getenv("SERVER_ADDR")
 	if addr == "" {
@@ -112,13 +111,12 @@ func startRPCClient(jogo *Jogo, lock chan struct{}) {
 	for _, p := range joinRep.Players {
 		st.others[p.ID] = struct{ X, Y int }{p.X, p.Y}
 		<-lock
-		// Cuidado para não sobrescrever paredes; aqui sobrescrevemos somente visuais.
 		jogo.Mapa[p.Y][p.X] = SegundoJogador
 		interfaceDesenharJogo(jogo)
 		lock <- struct{}{}
 	}
 
-	// Loop de atualização (heartbeat + polling)
+	// Loop de atualização
 	go func() {
 		tick := time.NewTicker(200 * time.Millisecond)
 		defer tick.Stop()
@@ -180,10 +178,5 @@ func startRPCClient(jogo *Jogo, lock chan struct{}) {
 				}
 			}
 		}
-	}()
-
-	// Encerra no final (não bloqueante)
-	go func() {
-		// Nada a fazer aqui; para encerrar com elegância, capture sinais no main e chame Leave
 	}()
 }
