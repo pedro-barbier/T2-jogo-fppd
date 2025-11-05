@@ -120,60 +120,57 @@ func startRPCClient(jogo *Jogo, lock chan struct{}) {
 	go func() {
 		tick := time.NewTicker(200 * time.Millisecond)
 		defer tick.Stop()
-		for {
-			select {
-			case <-tick.C:
-				// Envia estado atual do jogador local
-				upReq := rpcUpdateArgs{
-					ID:     st.selfID,
-					X:      jogo.PosX,
-					Y:      jogo.PosY,
-					Lives:  0,  // 0 = não alterar no servidor
-					Dir:    "", // opcional
-					Action: "tick",
-				}
-				var upRep rpcUpdateReply
-				_ = st.client.Call("GameServer.Update", upReq, &upRep)
+		for range tick.C {
+			// Envia estado atual do jogador local
+			upReq := rpcUpdateArgs{
+				ID:     st.selfID,
+				X:      jogo.PosX,
+				Y:      jogo.PosY,
+				Lives:  0, // 0 = não alterar no servidor
+				Dir:    "",
+				Action: "tick",
+			}
+			var upRep rpcUpdateReply
+			_ = st.client.Call("GameServer.Update", upReq, &upRep)
 
-				// Busca eventos novos
-				var pr rpcPollReply
-				if err := st.client.Call("GameServer.Poll", rpcPollArgs{Since: st.lastEvID}, &pr); err != nil {
-					continue
-				}
-				for _, ev := range pr.Events {
-					st.lastEvID = ev.ID
-					switch ev.Type {
-					case "player_join", "player_state":
-						// Atualiza/Desenha outros jogadores
-						if ev.Player.ID == st.selfID {
-							continue
-						}
-						prev, ok := st.others[ev.Player.ID]
-						if ok {
-							<-lock
-							// Limpa posição antiga se ainda marcada como SegundoJogador
-							if jogo.Mapa[prev.Y][prev.X] == SegundoJogador {
-								jogo.Mapa[prev.Y][prev.X] = Vazio
-							}
-							lock <- struct{}{}
-						}
-						st.others[ev.Player.ID] = struct{ X, Y int }{ev.Player.X, ev.Player.Y}
+			// Busca eventos novos
+			var pr rpcPollReply
+			if err := st.client.Call("GameServer.Poll", rpcPollArgs{Since: st.lastEvID}, &pr); err != nil {
+				continue
+			}
+			for _, ev := range pr.Events {
+				st.lastEvID = ev.ID
+				switch ev.Type {
+				case "player_join", "player_state":
+					// Atualiza/Desenha outros jogadores
+					if ev.Player.ID == st.selfID {
+						continue
+					}
+					prev, ok := st.others[ev.Player.ID]
+					if ok {
 						<-lock
-						jogo.Mapa[ev.Player.Y][ev.Player.X] = SegundoJogador
-						interfaceDesenharJogo(jogo)
-						lock <- struct{}{}
-					case "player_leave":
-						// Remove do mapa
-						prev, ok := st.others[ev.Player.ID]
-						if ok {
-							<-lock
-							if jogo.Mapa[prev.Y][prev.X] == SegundoJogador {
-								jogo.Mapa[prev.Y][prev.X] = Vazio
-								interfaceDesenharJogo(jogo)
-							}
-							lock <- struct{}{}
-							delete(st.others, ev.Player.ID)
+						// Limpa posição antiga se ainda marcada como SegundoJogador
+						if jogo.Mapa[prev.Y][prev.X] == SegundoJogador {
+							jogo.Mapa[prev.Y][prev.X] = Vazio
 						}
+						lock <- struct{}{}
+					}
+					st.others[ev.Player.ID] = struct{ X, Y int }{ev.Player.X, ev.Player.Y}
+					<-lock
+					jogo.Mapa[ev.Player.Y][ev.Player.X] = SegundoJogador
+					interfaceDesenharJogo(jogo)
+					lock <- struct{}{}
+				case "player_leave":
+					// Remove do mapa
+					prev, ok := st.others[ev.Player.ID]
+					if ok {
+						<-lock
+						if jogo.Mapa[prev.Y][prev.X] == SegundoJogador {
+							jogo.Mapa[prev.Y][prev.X] = Vazio
+							interfaceDesenharJogo(jogo)
+						}
+						lock <- struct{}{}
+						delete(st.others, ev.Player.ID)
 					}
 				}
 			}
